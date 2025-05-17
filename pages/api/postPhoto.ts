@@ -3,6 +3,9 @@ import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  console.log('Bucket:', process.env.MY_BUCKET_NAME);
+  console.log('Region:', process.env.MY_REGION);
+
   const { filename, contentType } = req.query;
 
   if (!filename || !contentType) {
