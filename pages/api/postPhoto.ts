@@ -1,10 +1,13 @@
+// ✅ Correct location: pages/api/postPhoto.ts
+
 import type { NextApiRequest, NextApiResponse } from "next";
 import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('Bucket:', process.env.MY_BUCKET_NAME);
-  console.log('Region:', process.env.MY_REGION);
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed. Use GET." });
+  }
 
   const { filename, contentType } = req.query;
 
@@ -28,7 +31,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       Key: key,
       Conditions: [
         ["starts-with", "$key", "uploads/"],
-        ["starts-with", "$Content-Type", ""]
+        ["starts-with", "$Content-Type", ""],
       ],
       Fields: {
         key,
@@ -37,15 +40,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       Expires: 600,
     });
 
-    // Use the regional endpoint instead of default returned URL
-    const url = `https://nextjs-upload-bucket-12345.s3.ap-south-1.amazonaws.com`;
-
+    const url = `https://${process.env.MY_BUCKET_NAME}.s3.${process.env.MY_REGION}.amazonaws.com`;
 
     return res.status(200).json({ url, fields });
   } catch (error) {
     console.error("Error generating signed URL:", error);
     return res.status(500).json({ error: "Could not generate signed URL" });
   }
-};
-
-export default handler;
+}
