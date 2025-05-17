@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Missing filename or contentType" });
   }
 
-  // Log env vars (only during development or troubleshooting)
+  // Optional: log env vars for debugging (disable in production)
   console.log("S3 ENV CONFIG:", {
     MY_ACCESS_KEY_ID: process.env.MY_ACCESS_KEY_ID,
     MY_SECRET_ACCESS_KEY: process.env.MY_SECRET_ACCESS_KEY ? "✅ Set" : "❌ Missing",
@@ -49,11 +49,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const url = `https://${process.env.MY_BUCKET_NAME}.s3.${process.env.MY_REGION}.amazonaws.com`;
 
     return res.status(200).json({ url, fields });
-  } catch (error: any) {
-    console.error("❌ Error generating signed URL:", error);
+  } catch (error) {
+    const err = error as Error;
+    console.error("❌ Error generating signed URL:", err.message);
     return res.status(500).json({
       error: "Could not generate signed URL",
-      details: error.message || "Unknown error",
+      details: err.message,
     });
   }
 }
