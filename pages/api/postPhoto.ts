@@ -1,5 +1,3 @@
-// ✅ Correct location: pages/api/postPhoto.ts
-
 import type { NextApiRequest, NextApiResponse } from "next";
 import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
@@ -15,11 +13,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Missing filename or contentType" });
   }
 
+  // Log env vars (only during development or troubleshooting)
+  console.log("S3 ENV CONFIG:", {
+    MY_ACCESS_KEY_ID: process.env.MY_ACCESS_KEY_ID,
+    MY_SECRET_ACCESS_KEY: process.env.MY_SECRET_ACCESS_KEY ? "✅ Set" : "❌ Missing",
+    MY_REGION: process.env.MY_REGION,
+    MY_BUCKET_NAME: process.env.MY_BUCKET_NAME,
+  });
+
   try {
     const key = `uploads/${Date.now()}_${filename.toString()}`;
 
     const client = new S3Client({
-      region: process.env.MY_REGION,
+      region: process.env.MY_REGION!,
       credentials: {
         accessKeyId: process.env.MY_ACCESS_KEY_ID!,
         secretAccessKey: process.env.MY_SECRET_ACCESS_KEY!,
@@ -37,14 +43,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         key,
         "Content-Type": contentType.toString(),
       },
-      Expires: 600,
+      Expires: 600, // 10 minutes
     });
 
     const url = `https://${process.env.MY_BUCKET_NAME}.s3.${process.env.MY_REGION}.amazonaws.com`;
 
     return res.status(200).json({ url, fields });
-  } catch (error) {
-    console.error("Error generating signed URL:", error);
-    return res.status(500).json({ error: "Could not generate signed URL" });
+  } catch (error: any) {
+    console.error("❌ Error generating signed URL:", error);
+    return res.status(500).json({
+      error: "Could not generate signed URL",
+      details: error.message || "Unknown error",
+    });
   }
 }

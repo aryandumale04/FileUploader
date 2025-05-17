@@ -36,7 +36,8 @@ export default function Home() {
         return { success: false, message: "Upload failed." };
       }
 
-      const uploadedFileUrl = `${url}${fields.key}`;
+      // FIXED: Added slash '/' between url and fields.key to form a valid URL
+      const uploadedFileUrl = `${url}/${fields.key}`;
       return { success: true, message: "Upload successful!", url: uploadedFileUrl };
     } catch (error) {
       console.error("Error uploading file:", error);
