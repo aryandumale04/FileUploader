@@ -38,7 +38,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     // Use the regional endpoint instead of default returned URL
-    const url = `https://${process.env.MY_BUCKET_NAME}.s3.${process.env.MY_REGION}.amazonaws.com`;
+    const url = `https://nextjs-upload-bucket-12345.s3.ap-south-1.amazonaws.com`;
+
 
     return res.status(200).json({ url, fields });
   } catch (error) {
