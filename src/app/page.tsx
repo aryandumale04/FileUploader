@@ -8,24 +8,17 @@ export default function Home() {
   const [show, setShow] = useState<string>("hidden");
   const [uploadedUrl, setUploadedUrl] = useState<string>("");
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // 🟩 Upload logic extracted into helper function
+  const uploadFileToS3 = async (file: File): Promise<{ success: boolean; message: string; url?: string }> => {
+    try {
+      const response = await fetch(
+        `/api/postPhoto?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`
+      );
 
-    if (!file) {
-      setMessage("Please select a file to upload.");
-      setShow("block");
-      return;
-    }
+      if (!response.ok) {
+        return { success: false, message: "Failed to get pre-signed URL." };
+      }
 
-    setUploading(true);
-    setMessage("");
-    setUploadedUrl("");
-
-    const response = await fetch(
-      `/api/postPhoto?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`
-    );
-
-    if (response.ok) {
       const { url, fields } = await response.json();
 
       const formData = new FormData();
@@ -39,18 +32,37 @@ export default function Home() {
         body: formData,
       });
 
-      if (uploadResponse.ok) {
-        setMessage("Upload successful!");
-        // Construct the full URL to the uploaded file
-        const fileUrl = `${url}${fields.key}`;
-        setUploadedUrl(fileUrl);
-      } else {
-        setMessage("Upload failed.");
+      if (!uploadResponse.ok) {
+        return { success: false, message: "Upload failed." };
       }
-    } else {
-      setMessage("Failed to get pre-signed URL.");
+
+      const uploadedFileUrl = `${url}${fields.key}`;
+      return { success: true, message: "Upload successful!", url: uploadedFileUrl };
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      return { success: false, message: "An error occurred during upload." };
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!file) {
+      setMessage("Please select a file to upload.");
+      setShow("block");
+      return;
     }
 
+    setUploading(true);
+    setMessage("");
+    setUploadedUrl("");
+
+    const result = await uploadFileToS3(file);
+
+    setMessage(result.message);
+    if (result.success && result.url) {
+      setUploadedUrl(result.url);
+    }
     setShow("block");
     setUploading(false);
   };
