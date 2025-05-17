@@ -11,15 +11,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
     const client = new S3Client({
-      region: process.env.AWS_REGION,
+      region: process.env.MY_REGION,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        accessKeyId: process.env.MY_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.MY_SECRET_ACCESS_KEY!,
       },
     });
 
     const { url, fields } = await createPresignedPost(client, {
-      Bucket: process.env.AWS_BUCKET_NAME!,
+      Bucket: process.env.MY_BUCKET_NAME!,
       Key: filename.toString(),
       Conditions: [["starts-with", "$Content-Type", contentType.toString()]],
       Fields: {
