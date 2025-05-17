@@ -19,19 +19,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     const { url, fields } = await createPresignedPost(client, {
-        Bucket: process.env.AWS_BUCKET_NAME!,
-        Key: filename.toString(),
-        Conditions: [["starts-with", "$Content-Type", contentType.toString()]],
-        Fields: {
-            // acl: "public-read",  // REMOVE or COMMENT OUT this line
-            "Content-Type": contentType.toString(),
-  },
-  Expires: 600,
-});
-
+      Bucket: process.env.AWS_BUCKET_NAME!,
+      Key: filename.toString(),
+      Conditions: [["starts-with", "$Content-Type", contentType.toString()]],
+      Fields: {
+        // acl: "public-read",  // REMOVE or COMMENT OUT this line
+        "Content-Type": contentType.toString(),
+      },
+      Expires: 600,
+    });
 
     return res.status(200).json({ url, fields });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: "Could not generate signed URL" });
   }
 };
