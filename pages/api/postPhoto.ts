@@ -19,15 +19,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     const { url, fields } = await createPresignedPost(client, {
-      Bucket: process.env.MY_BUCKET_NAME!,
-      Key: filename.toString(),
-      Conditions: [["starts-with", "$Content-Type", contentType.toString()]],
-      Fields: {
-        // acl: "public-read",  // REMOVE or COMMENT OUT this line
-        "Content-Type": contentType.toString(),
-      },
-      Expires: 600,
-    });
+  Bucket: process.env.MY_BUCKET_NAME!,
+  Key: filename.toString(),
+  Conditions: [["starts-with", "$Content-Type", contentType.toString()]],
+  Fields: {
+    "Content-Type": contentType.toString(),
+  },
+  Expires: 600,
+});
+
+console.log("Presigned URL:", url); // ✅ Log this
+console.log("Fields:", fields);
+
 
     return res.status(200).json({ url, fields });
   } catch (error) {
